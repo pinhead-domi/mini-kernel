@@ -13,10 +13,9 @@
 extern char __kernel_start[];
 extern char __kernel_end[];
 extern char __stack_top[];
-static uint8_t page_bitmap[BITMAP_SIZE];
 
-void* alloc_page();
-void free_page(void* page);
+void *alloc_page();
+void free_page(void *page);
 void init_page_manager();
 
 #endif

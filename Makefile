@@ -27,7 +27,7 @@ ASFLAGS   = -march=rv64imac_zicsr -mabi=lp64
 LDFLAGS   = -T linker.ld -nostdlib
 
 # Source files
-SRC_C     = core/kernel.c core/mem_util.c core/page_manager.c core/kprintf.c arch/riscv/sbi.c
+SRC_C     = core/kernel.c core/memory.c core/mem_util.c core/page_manager.c core/kprintf.c arch/riscv/sbi.c
 SRC_S     = arch/riscv/boot/start.S
 
 # Object files (in build directory)

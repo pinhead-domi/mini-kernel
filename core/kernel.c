@@ -1,7 +1,9 @@
 #include "kprintf.h"
+#include "mem_util.h"
+#include "memory.h"
+#include "pager_manager.h"
 #include "sbi.h"
 #include "types.h"
-#include "pager_manager.h"
 
 #define BIT_POS_SIE 1
 #define BIT_POS_STIE 5
@@ -41,7 +43,9 @@ void trap_handler() {
     sbi_set_timer(next_timer);
     break;
   default:
-    kprintf("Unknown Trap\n");
+    kprintf("Unknown Trap; %x\n", scause);
+    while (1)
+      ;
     break;
   }
 }
@@ -70,7 +74,29 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("\nHello from RISC-V kernel!\n");
   kprintf("========================================\n");
 
-  kprintf("NUM_PAGES: %d\n", (int) NUM_PAGES);
+  kprintf("NUM_PAGES: %d\n", (int)NUM_PAGES);
+  kprintf("Kernel start: %p\n", __kernel_start);
+  kprintf("Kernel end: %p\n", __kernel_end);
+  init_page_manager();
+  kprintf("Page Manager Initialized\n");
+  void *tlp = alloc_page();
+  kprintf("Allocated TLP at %p\n", tlp);
+  memset(tlp, 0, PAGE_SIZE);
+
+  for (uint64_t kernel_page = (uint64_t)__kernel_start;
+       kernel_page < (uint64_t)__kernel_end + 0x10000;
+       kernel_page += PAGE_SIZE) {
+    map_page(tlp, kernel_page, kernel_page);
+  }
+
+  kprintf("Kernel mapped?\n");
+
+  kprintf("Enabling paging...\n");
+  uint64_t satp = (8ULL << 60) | ((uint64_t)tlp >> 12);
+  asm volatile("csrw satp, %0" ::"r"(satp));
+  asm volatile("sfence.vma");
+
+  kprintf("Paging enabled!\n");
 
   enable_interrupts();
 
