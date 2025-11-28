@@ -13,6 +13,7 @@
 extern char __kernel_start[];
 extern char __kernel_end[];
 extern char __stack_top[];
+extern char __paging_stack[];
 
 void *alloc_page();
 void free_page(void *page);

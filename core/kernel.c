@@ -9,6 +9,9 @@
 #define BIT_POS_STIE 5
 
 #define SCAUSE_MTI 5
+#define SCAUSE_PF_I 12
+#define SCAUSE_PF_L 13
+#define SCAUSE_PF_W 15
 
 #define SBI_FUNC_SET_TIMER 0
 #define TIME_DELTA_1_SEC 10000000UL
@@ -29,11 +32,31 @@ static inline uint64_t read_time(void) {
 }
 
 volatile uint64_t system_timer = 0;
+void *tlp = 0;
+
+#define KERNEL_STACK_SIZE (64lu * 1024lu)
+
+void handle_pagefault() {
+  uint64_t scause, sepc, stval;
+
+  asm volatile ("csrr %0, scause" : "=r"(scause));
+  asm volatile ("csrr %0, sepc" : "=r"(sepc));
+  asm volatile ("csrr %0, stval" : "=r"(stval));
+
+  scause &= ~(1lu << 63);
+  char* type = scause == 12 ? "INSTRUCTION FETCH" : scause == 13 ? "LOAD" : "WRITE";
+
+  kprintf("%s PAGEFAULT\n", type);
+  kprintf("Faulting address: %p\n", stval);
+  kprintf("PC that caused it: %p\n", sepc);
+
+  while(1);
+}
 
 void trap_handler() {
   uint64_t scause;
   asm volatile("csrr %0, scause" : "=r"(scause));
-  scause &= ~(1 << 31);
+  scause &= ~(1lu << 63);
 
   switch (scause) {
   case SCAUSE_MTI:
@@ -42,8 +65,13 @@ void trap_handler() {
     system_timer += 10000000;
     sbi_set_timer(next_timer);
     break;
+  case SCAUSE_PF_I:
+  case SCAUSE_PF_L:
+  case SCAUSE_PF_W:
+    handle_pagefault();
+    break;
   default:
-    kprintf("Unknown Trap; %x\n", scause);
+    kprintf("Unknown Trap; 0x%x\n", scause);
     while (1)
       ;
     break;
@@ -79,7 +107,7 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("Kernel end: %p\n", __kernel_end);
   init_page_manager();
   kprintf("Page Manager Initialized\n");
-  void *tlp = alloc_page();
+  tlp = alloc_page();
   kprintf("Allocated TLP at %p\n", tlp);
   memset(tlp, 0, PAGE_SIZE);
 

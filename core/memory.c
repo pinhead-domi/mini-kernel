@@ -4,6 +4,10 @@
 #include "pager_manager.h"
 
 void map_page(pte_t *root_table, uint64_t va, uint64_t pa) {
+  if(va % PAGE_SIZE != 0) {
+    kprintf("WARNING: Mapping VMA that is not page-aligned, right now this works but I don't know for how long!\n");
+  }
+
   uint64_t vpn2 = (va >> 30) & 0x1FF;
   uint64_t vpn1 = (va >> 21) & 0x1FF;
   uint64_t vpn0 = (va >> 12) & 0x1FF;
