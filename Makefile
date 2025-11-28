@@ -1,5 +1,10 @@
 # Toolchain
+OS := $(shell uname -o)
+ifeq ($(OS),GNU/Linux)
 CROSS     = riscv64-elf-
+else
+CROSS     = riscv64-unknown-elf-
+endif
 CC        = $(CROSS)gcc
 AS        = $(CROSS)as
 LD        = $(CROSS)ld
@@ -22,7 +27,7 @@ ASFLAGS   = -march=rv64imac_zicsr -mabi=lp64
 LDFLAGS   = -T linker.ld -nostdlib
 
 # Source files
-SRC_C     = core/kernel.c core/kprintf.c arch/riscv/sbi.c
+SRC_C     = core/kernel.c core/mem_util.c core/page_manager.c core/kprintf.c arch/riscv/sbi.c
 SRC_S     = arch/riscv/boot/start.S
 
 # Object files (in build directory)
@@ -44,7 +49,7 @@ $(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
 
 $(OBJ_DIR)/%.o: %.S | $(OBJ_DIR)
 	@mkdir -p $(dir $@)
-	$(AS) $(ASFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(KERNEL_ELF): $(OBJ) linker.ld | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) $(OBJ) -o $@

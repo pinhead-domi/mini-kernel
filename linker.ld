@@ -2,7 +2,6 @@ OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
 SECTIONS {
-    /* QEMU virt machine loads kernel at 0x80200000 */
     . = 0x80200000;
 
     __kernel_start = .;
@@ -32,7 +31,6 @@ SECTIONS {
     . = ALIGN(4K);
     __kernel_end = .;
 
-    /* Stack grows downward */
-    . = . + 0x10000;  /* 64 KB stack */
+    . = . + 0x10000;
     __stack_top = .;
 }

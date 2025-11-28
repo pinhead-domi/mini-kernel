@@ -1,6 +1,7 @@
 #include "kprintf.h"
 #include "sbi.h"
 #include "types.h"
+#include "pager_manager.h"
 
 #define BIT_POS_SIE 1
 #define BIT_POS_STIE 5
@@ -32,16 +33,15 @@ void trap_handler() {
   asm volatile("csrr %0, scause" : "=r"(scause));
   scause &= ~(1 << 31);
 
-  kprintf("Trap! scause = 0x%x\n", scause);
-
   switch (scause) {
   case SCAUSE_MTI:
-    kprintf("It was a timer trap!\n");
+    kprintf("Timer Interrupt Trap\n");
     uint64_t next_timer = read_time() + 10000000;
     system_timer += 10000000;
     sbi_set_timer(next_timer);
     break;
   default:
+    kprintf("Unknown Trap\n");
     break;
   }
 }
@@ -69,6 +69,8 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
 
   kprintf("\nHello from RISC-V kernel!\n");
   kprintf("========================================\n");
+
+  kprintf("NUM_PAGES: %d\n", (int) NUM_PAGES);
 
   enable_interrupts();
 
