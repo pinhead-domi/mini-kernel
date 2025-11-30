@@ -1,9 +1,4 @@
-#include "kprintf.h"
-#include "mem_util.h"
-#include "memory.h"
-#include "pager_manager.h"
-#include "sbi.h"
-#include "types.h"
+#include "kernel.h"
 
 #define BIT_POS_SIE 1
 #define BIT_POS_STIE 5
@@ -32,9 +27,6 @@ static inline uint64_t read_time(void) {
 }
 
 volatile uint64_t system_timer = 0;
-void *tlp = 0;
-
-#define KERNEL_STACK_SIZE (64lu * 1024lu)
 
 void handle_pagefault() {
   uint64_t scause, sepc, stval;
@@ -103,29 +95,10 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("========================================\n");
 
   kprintf("NUM_PAGES: %d\n", (int)NUM_PAGES);
-  kprintf("Kernel start: %p\n", __kernel_start);
-  kprintf("Kernel end: %p\n", __kernel_end);
+  //kprintf("Kernel start: %p\n", __kernel_start);
+  //kprintf("Kernel end: %p\n", __kernel_end);
   init_page_manager();
   kprintf("Page Manager Initialized\n");
-  tlp = alloc_page();
-  kprintf("Allocated TLP at %p\n", tlp);
-  memset(tlp, 0, PAGE_SIZE);
-
-  for (uint64_t kernel_page = (uint64_t)__kernel_start;
-       kernel_page < (uint64_t)__kernel_end + 0x10000;
-       kernel_page += PAGE_SIZE) {
-    map_page(tlp, kernel_page, kernel_page);
-  }
-
-  kprintf("Kernel mapped?\n");
-
-  kprintf("Enabling paging...\n");
-  uint64_t satp = (8ULL << 60) | ((uint64_t)tlp >> 12);
-  asm volatile("csrw satp, %0" ::"r"(satp));
-  asm volatile("sfence.vma");
-
-  kprintf("Paging enabled!\n");
-
   enable_interrupts();
 
   uint64_t next_timer = read_time() + 10000000;

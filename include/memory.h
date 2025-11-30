@@ -21,6 +21,26 @@ typedef union {
   };
 } pte_t;
 
+#define VPN0(va) (((va) >> 12) & 0x1FF)
+#define VPN1(va) (((va) >> 21) & 0x1FF)
+#define VPN2(va) (((va) >> 30) & 0x1FF)
+
+#define PAGE_SIZE 4096
+#define PAGE_SHIFT 12
+
+#define PTE_V 0x01
+#define PTE_R 0x02
+#define PTE_W 0x04
+#define PTE_X 0x08
+#define PTE_U 0x10
+#define PTE_G 0x20
+#define PTE_A 0x40
+#define PTE_D 0x80
+
+#define KERNEL_PHYS_BASE  0x80000000UL
+#define KERNEL_VIRT_BASE  0xFFFFFFFF80000000UL
+#define DIRECT_MAP_BASE   0xFFFFFFC000000000UL
+
 void map_page(pte_t *root_table, uint64_t va, uint64_t pa);
 
 #endif

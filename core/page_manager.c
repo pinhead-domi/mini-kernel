@@ -5,7 +5,7 @@
 uint8_t page_bitmap[BITMAP_SIZE];
 
 void init_page_manager() {
-  kprintf("Page Manager Init started\n");
+  /*kprintf("Page Manager Init started\n");
   memset(page_bitmap, 0, sizeof(page_bitmap));
   kprintf("Memset finished\n");
 
@@ -16,7 +16,7 @@ void init_page_manager() {
   kprintf("%d pages will be reserved for kernel\n", openSBI_pages);
   for (uint64_t i = 0; i < openSBI_pages; i++) {
     alloc_page(); // Mark pages used by openSBI and kernel as used
-  }
+  }*/
 }
 
 void *alloc_page() {
