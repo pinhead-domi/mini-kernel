@@ -9,13 +9,14 @@ SECTIONS {
     . = KERNEL_PHYS_BASE;
     
     __boot_start = .;
-    
+   
     .boot.text : {
-        *(.boot.text)
+      *(.boot.text.entry)    /* _start goes here FIRST */
+      *(.boot.text)          /* everything else after */
     }
-    
+
     .boot.data : {
-        *(.boot.data)
+      *(.boot.data)
     }
     
     . = ALIGN(4K);

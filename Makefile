@@ -1,7 +1,7 @@
 # Toolchain
 OS := $(shell uname -o)
 ifeq ($(OS),GNU/Linux)
-CROSS     = riscv64-elf-
+CROSS     = riscv64-none-elf-
 else
 CROSS     = riscv64-unknown-elf-
 endif

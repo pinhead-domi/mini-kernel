@@ -1,5 +1,5 @@
-.section .boot.text
-.globl _start
+.section .boot.text.entry
+.global _start
 _start:
     # Set up boot stack (physical address)
     la sp, __boot_stack_top
@@ -10,15 +10,6 @@ _start:
     
     # Only hart 0 continues
     bnez a0, park_hart
-    
-    la t0, __bss_start
-    la t1, __bss_end
-clear_bss:
-    bgeu t0, t1, bss_done
-    sd zero, 0(t0)
-    addi t0, t0, 8
-    j clear_bss
-bss_done:
     
     # Set up paging
     call setup_boot_paging
