@@ -1,7 +1,7 @@
 # Toolchain
 OS := $(shell uname -o)
 ifeq ($(OS),GNU/Linux)
-CROSS     = riscv64-none-elf-
+CROSS     = riscv64-elf-
 else
 CROSS     = riscv64-unknown-elf-
 endif
@@ -18,7 +18,7 @@ OBJ_DIR   = $(BUILD_DIR)/obj
 CFLAGS    = -march=rv64imac_zicsr -mabi=lp64 \
             -mcmodel=medany \
             -ffreestanding -nostdlib -nostartfiles \
-            -Wall -Wextra -O2 -fno-builtin \
+            -Wall -Wextra -fno-builtin \
             -I./include \
             -g
 
@@ -28,7 +28,7 @@ LDFLAGS   = -T linker.ld -nostdlib
 
 # Source files
 SRC_C     = core/kernel.c core/memory.c core/mem_util.c arch/riscv/boot/setup_paging.c core/page_manager.c core/kprintf.c arch/riscv/sbi.c
-SRC_S     = arch/riscv/boot/start.S
+SRC_S     = arch/riscv/boot/start.S arch/riscv/trap.S
 
 # Object files (in build directory)
 OBJ       = $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_C)) \

@@ -70,6 +70,8 @@ void trap_handler() {
   }
 }
 
+extern void trap_entry(void);
+
 void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("========================================\n");
   kprintf("RISC-V Bare-Metal Kernel\n");
@@ -94,9 +96,11 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("\nHello from RISC-V kernel!\n");
   kprintf("========================================\n");
 
+  uint64_t trap_addr = (uint64_t)trap_entry;
+  asm volatile("csrw stvec, %0" :: "r"(trap_addr));
+  kprintf("Trap handler set at %p\n", trap_addr);
+
   kprintf("NUM_PAGES: %d\n", (int)NUM_PAGES);
-  //kprintf("Kernel start: %p\n", __kernel_start);
-  //kprintf("Kernel end: %p\n", __kernel_end);
   init_page_manager();
   kprintf("Page Manager Initialized\n");
   enable_interrupts();
@@ -106,7 +110,6 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
 
   kprintf("Timer set! Waiting for interrupt...\n");
 
-  /* Idle loop */
   while (1) {
     asm volatile("wfi"); /* Wait for interrupt */
   }
