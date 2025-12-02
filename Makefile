@@ -16,7 +16,7 @@ BUILD_DIR = build
 OBJ_DIR   = $(BUILD_DIR)/obj
 
 CFLAGS    = -march=rv64imac_zicsr -mabi=lp64 \
-            -mcmodel=medany \
+            -mcmodel=large \
             -ffreestanding -nostdlib -nostartfiles \
             -Wall -Wextra -fno-builtin \
             -I./include \

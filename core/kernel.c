@@ -71,6 +71,8 @@ void trap_handler() {
 }
 
 extern void trap_entry(void);
+extern pte_t kernel_l2_table[];
+extern char __stack_top[];
 
 void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("========================================\n");
@@ -100,6 +102,8 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   asm volatile("csrw stvec, %0" :: "r"(trap_addr));
   kprintf("Trap handler set at %p\n", trap_addr);
 
+  remove_boot_mapping(kernel_l2_table);
+
   kprintf("NUM_PAGES: %d\n", (int)NUM_PAGES);
   init_page_manager();
   kprintf("Page Manager Initialized\n");
@@ -107,6 +111,11 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
 
   uint64_t next_timer = read_time() + 10000000;
   sbi_set_timer(next_timer);
+
+  uint64_t* data = (uint64_t*)(__stack_top + 0x1000000);
+
+  map_page(kernel_l2_table, (uint64_t)data, (uint64_t)alloc_page());
+  kprintf("I read %d from the data pointer!\n", *data);
 
   kprintf("Timer set! Waiting for interrupt...\n");
 

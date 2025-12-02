@@ -37,10 +37,13 @@ typedef union {
 #define PTE_A 0x40
 #define PTE_D 0x80
 
-#define KERNEL_PHYS_BASE  0x80000000UL
-#define KERNEL_VIRT_BASE  0xFFFFFFFF80000000UL
-#define DIRECT_MAP_BASE   0xFFFFFFC000000000UL
+#define PHYS_MEM_BASE    0x80000000UL
+#define DIRECT_MAP_BASE  0xFFFFFFC000000000UL
+
+#define PHYS_TO_VIRT(paddr) ((void*)((uint64_t)(paddr) + DIRECT_MAP_BASE - PHYS_MEM_BASE))
+#define VIRT_TO_PHYS(vaddr) ((uint64_t)(vaddr) - DIRECT_MAP_BASE + PHYS_MEM_BASE)
 
 void map_page(pte_t *root_table, uint64_t va, uint64_t pa);
+void remove_boot_mapping(pte_t *root_table);
 
 #endif
