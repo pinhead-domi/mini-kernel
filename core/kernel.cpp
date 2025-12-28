@@ -1,5 +1,7 @@
 #include "kernel.hpp"
 #include "kernel_allocatpor.hpp"
+#include "mem_util.h"
+#include "pager_manager.h"
 
 #define BIT_POS_SIE 1
 #define BIT_POS_STIE 5
@@ -75,6 +77,49 @@ void trap_handler() {
   }
 }
 
+void allocator_test(){
+  KernelMemoryManager manager;
+
+  struct A{
+    char name[2*PAGE_SIZE + 1];
+  };
+  struct B{
+    char name[100];
+  };
+
+  void* a = manager.kmalloc(sizeof(A));
+  void* b = manager.kmalloc(sizeof(B));
+  void* c = manager.kmalloc(sizeof(A));
+  void* d = manager.kmalloc(sizeof(B));
+  void* e = manager.kmalloc(sizeof(A));
+  void* f = manager.kmalloc(sizeof(B));
+
+  kmemset(a, 69, sizeof(A));
+  kmemset(b, 69, sizeof(B));
+  kmemset(c, 69, sizeof(A));
+  kmemset(d, 69, sizeof(B));
+  kmemset(e, 69, sizeof(A));
+  kmemset(f, 69, sizeof(B));
+
+  kprintf("After six allocations the resource list has %d elements\n", manager.__debug_get_resource_list_length());
+
+  int result = manager.free(a);
+  kprintf("Free returned %d\n", result);
+
+  a = manager.kmalloc(sizeof(A));
+
+  manager.free(a);
+  manager.free(b);
+  manager.free(c);
+  manager.free(d);
+  manager.free(e);
+
+  kprintf("After five frees the resource list has %d elements\n", manager.__debug_get_resource_list_length());
+
+  manager.free(f);
+  kprintf("After six frees the resource list has %d elements\n", manager.__debug_get_resource_list_length());
+}
+
 extern "C" void trap_entry(void);
 extern pte_t kernel_l2_table[];
 extern char __stack_top[];
@@ -116,6 +161,8 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
 
   mem = KernelMemoryManager();  
   enable_interrupts();
+
+  allocator_test();
 
   uint64_t next_timer = read_time() + 10000000;
   sbi_set_timer(next_timer);

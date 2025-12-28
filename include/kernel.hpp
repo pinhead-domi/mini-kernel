@@ -10,5 +10,6 @@
 
 extern "C"
 void kernel_main(uint64_t hartid, uint64_t dtb_addr);
+void allocator_test();
 
 #endif

@@ -6,7 +6,7 @@ uint8_t page_bitmap[BITMAP_SIZE];
 
 void init_page_manager() {
   kprintf("Page Manager Init started\n");
-  memset(page_bitmap, 0, sizeof(page_bitmap));
+  kmemset(page_bitmap, 0, sizeof(page_bitmap));
   kprintf("Memset finished\n");
 
   uint64_t kernel_size =

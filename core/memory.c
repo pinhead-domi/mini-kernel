@@ -24,7 +24,7 @@ void map_page(pte_t *root_table, uint64_t va, uint64_t pa) {
   if (!l2_pte->V) {
     l1_table_phys = alloc_page();
     l1_table = PHYS_TO_VIRT(l1_table_phys);
-    memset(l1_table, 0, PAGE_SIZE);
+    kmemset(l1_table, 0, PAGE_SIZE);
 
     kprintf("L1 was mapped to %p\n", l1_table);
 
@@ -42,7 +42,7 @@ void map_page(pte_t *root_table, uint64_t va, uint64_t pa) {
   if (!l1_pte->V) {
     l0_table_phys = alloc_page();
     l0_table = PHYS_TO_VIRT(l0_table_phys);
-    memset(l0_table, 0, PAGE_SIZE);
+    kmemset(l0_table, 0, PAGE_SIZE);
 
     kprintf("L0 was mapped to %p\n", l0_table);
 
