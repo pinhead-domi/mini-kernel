@@ -16,9 +16,18 @@
 
 #define SBI_EXT_ID_TIME      0x54494D45
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void sbi_putchar(int ch);
 int sbi_getchar(void);
 void sbi_shutdown(void);
 long sbi_set_timer(uint64_t stime_value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

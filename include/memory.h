@@ -24,6 +24,7 @@ typedef union {
 #define VPN0(va) (((va) >> 12) & 0x1FF)
 #define VPN1(va) (((va) >> 21) & 0x1FF)
 #define VPN2(va) (((va) >> 30) & 0x1FF)
+#define VPN(va) (((va) >> 12) & 0x7FFFFFF)
 
 #define PAGE_SIZE 4096
 #define PAGE_SHIFT 12
@@ -39,11 +40,24 @@ typedef union {
 
 #define PHYS_MEM_BASE    0x80000000UL
 #define DIRECT_MAP_BASE  0xFFFFFFC000000000UL
+#define KERNEL_BRK_BASE  0xFFFFFFFF90000000UL
 
 #define PHYS_TO_VIRT(paddr) ((void*)((uint64_t)(paddr) + DIRECT_MAP_BASE - PHYS_MEM_BASE))
 #define VIRT_TO_PHYS(vaddr) ((uint64_t)(vaddr) - DIRECT_MAP_BASE + PHYS_MEM_BASE)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern void* KERNEL_BRK;
+int kbrk(void* brk);
+void* ksbrk(size_t diff);
 void map_page(pte_t *root_table, uint64_t va, uint64_t pa);
+void unmap_page(pte_t *root_table, uint64_t va);
 void remove_boot_mapping(pte_t *root_table);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

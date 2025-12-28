@@ -1,4 +1,5 @@
-#include "kernel.h"
+#include "kernel.hpp"
+#include "kernel_allocatpor.hpp"
 
 #define BIT_POS_SIE 1
 #define BIT_POS_STIE 5
@@ -10,6 +11,8 @@
 
 #define SBI_FUNC_SET_TIMER 0
 #define TIME_DELTA_1_SEC 10000000UL
+
+KernelMemoryManager mem;
 
 static inline void enable_interrupts() {
   asm volatile("csrs sie, %0" ::"r"(1 << BIT_POS_STIE));
@@ -36,7 +39,7 @@ void handle_pagefault() {
   asm volatile ("csrr %0, stval" : "=r"(stval));
 
   scause &= ~(1lu << 63);
-  char* type = scause == 12 ? "INSTRUCTION FETCH" : scause == 13 ? "LOAD" : "WRITE";
+  const char* type = scause == 12 ? "INSTRUCTION FETCH" : scause == 13 ? "LOAD" : "WRITE";
 
   kprintf("%s PAGEFAULT\n", type);
   kprintf("Faulting address: %p\n", stval);
@@ -45,18 +48,20 @@ void handle_pagefault() {
   while(1);
 }
 
+extern "C"
 void trap_handler() {
   uint64_t scause;
   asm volatile("csrr %0, scause" : "=r"(scause));
   scause &= ~(1lu << 63);
 
   switch (scause) {
-  case SCAUSE_MTI:
+  case SCAUSE_MTI: {
     kprintf("Timer Interrupt Trap\n");
     uint64_t next_timer = read_time() + 10000000;
     system_timer += 10000000;
     sbi_set_timer(next_timer);
     break;
+  }
   case SCAUSE_PF_I:
   case SCAUSE_PF_L:
   case SCAUSE_PF_W:
@@ -70,10 +75,11 @@ void trap_handler() {
   }
 }
 
-extern void trap_entry(void);
+extern "C" void trap_entry(void);
 extern pte_t kernel_l2_table[];
 extern char __stack_top[];
 
+extern "C"
 void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("========================================\n");
   kprintf("RISC-V Bare-Metal Kernel\n");
@@ -107,6 +113,8 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   kprintf("NUM_PAGES: %d\n", (int)NUM_PAGES);
   init_page_manager();
   kprintf("Page Manager Initialized\n");
+
+  mem = KernelMemoryManager();  
   enable_interrupts();
 
   uint64_t next_timer = read_time() + 10000000;

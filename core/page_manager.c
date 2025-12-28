@@ -33,10 +33,16 @@ void *alloc_page() {
 }
 
 void free_page(void *page) {
-  uint64_t offset = (uint64_t)PHYSICAL_MEMORY_START - (uint64_t)page;
+  kprintf("Trying to unmap page %p\n", page);
+
+  uint64_t offset = (uint64_t) page - (uint64_t)PHYSICAL_MEMORY_START;
   uint64_t ppn = offset / PAGE_SIZE;
   uint64_t byte = ppn / 8;
   uint8_t idx = ppn % 8;
+
+  if(!(page_bitmap[byte] & (1 << idx))) {
+    kprintf("ERROR: FREE FOR PPN THAT WAS NOT ALLOCATED!\n");
+  }
 
   page_bitmap[byte] &= ~(1 << idx);
 }
