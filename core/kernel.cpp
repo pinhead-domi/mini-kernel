@@ -2,6 +2,10 @@
 #include "kernel_allocatpor.hpp"
 #include "mem_util.h"
 #include "pager_manager.h"
+#include <new>
+#include <ustl/uvector.h>
+#include <ustl/umap.h>
+#include <ustl/ustring.h>
 
 #define BIT_POS_SIE 1
 #define BIT_POS_STIE 5
@@ -78,8 +82,6 @@ void trap_handler() {
 }
 
 void allocator_test(){
-  KernelMemoryManager manager;
-
   struct A{
     char name[2*PAGE_SIZE + 1];
   };
@@ -87,12 +89,12 @@ void allocator_test(){
     char name[100];
   };
 
-  void* a = manager.kmalloc(sizeof(A));
-  void* b = manager.kmalloc(sizeof(B));
-  void* c = manager.kmalloc(sizeof(A));
-  void* d = manager.kmalloc(sizeof(B));
-  void* e = manager.kmalloc(sizeof(A));
-  void* f = manager.kmalloc(sizeof(B));
+  void* a = mem.kmalloc(sizeof(A));
+  void* b = mem.kmalloc(sizeof(B));
+  void* c = mem.kmalloc(sizeof(A));
+  void* d = mem.kmalloc(sizeof(B));
+  void* e = mem.kmalloc(sizeof(A));
+  void* f = mem.kmalloc(sizeof(B));
 
   kmemset(a, 69, sizeof(A));
   kmemset(b, 69, sizeof(B));
@@ -101,23 +103,23 @@ void allocator_test(){
   kmemset(e, 69, sizeof(A));
   kmemset(f, 69, sizeof(B));
 
-  kprintf("After six allocations the resource list has %d elements\n", manager.__debug_get_resource_list_length());
+  kprintf("After six allocations the resource list has %d elements\n", mem.__debug_get_resource_list_length());
 
-  int result = manager.free(a);
+  int result = mem.free(a);
   kprintf("Free returned %d\n", result);
 
-  a = manager.kmalloc(sizeof(A));
+  a = mem.kmalloc(sizeof(A));
 
-  manager.free(a);
-  manager.free(b);
-  manager.free(c);
-  manager.free(d);
-  manager.free(e);
+  mem.free(a);
+  mem.free(b);
+  mem.free(c);
+  mem.free(d);
+  mem.free(e);
 
-  kprintf("After five frees the resource list has %d elements\n", manager.__debug_get_resource_list_length());
+  kprintf("After five frees the resource list has %d elements\n", mem.__debug_get_resource_list_length());
 
-  manager.free(f);
-  kprintf("After six frees the resource list has %d elements\n", manager.__debug_get_resource_list_length());
+  mem.free(f);
+  kprintf("After six frees the resource list has %d elements\n", mem.__debug_get_resource_list_length());
 }
 
 extern "C" void trap_entry(void);
@@ -159,10 +161,23 @@ void kernel_main(uint64_t hartid, uint64_t dtb_addr) {
   init_page_manager();
   kprintf("Page Manager Initialized\n");
 
-  mem = KernelMemoryManager();  
+  new (&mem) KernelMemoryManager();
   enable_interrupts();
 
-  allocator_test();
+  //allocator_test();
+  {
+    ustl::vector<int> important_numbers;
+    for(size_t i=0; i<4096;i++){
+      important_numbers.push_back((int)i);
+    }
+  }
+
+  ustl::map<int,int>mapped_values;
+  mapped_values[1]=69;
+
+  ustl::string now_we_are_racing = "Now we are racing";
+  now_we_are_racing.append(", wow the ustl lib is so cool!");
+  kprintf("Now lets see if the ustl string works: %s\n", now_we_are_racing.c_str());
 
   uint64_t next_timer = read_time() + 10000000;
   sbi_set_timer(next_timer);

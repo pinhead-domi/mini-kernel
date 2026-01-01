@@ -21,6 +21,7 @@ private:
   void check_and_release_last();
 public:
   void* kmalloc(size_t size);
+  void* realloc(void* ptr, size_t size);
   int free(void* ptr);
   size_t __debug_get_resource_list_length();
   KernelMemoryManager();

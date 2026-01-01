@@ -191,5 +191,46 @@ void KernelMemoryManager::check_and_release_last(){
   }
 }
 
+void* KernelMemoryManager::realloc(void* ptr, size_t size) {
+  kprintf("Realloc was invoced with size %d and ptr %p\n", (int)size, ptr);
 
+  if(!ptr) {
+    return kmalloc(size);
+  }
 
+  Block* tmp = resource_list_;
+  while(tmp->next != nullptr && (tmp+1) != ptr){
+    tmp = tmp->next;
+  }
+
+  if((tmp+1) != ptr){
+    kprintf("Error reason: Ptr [%p] was not found in the resource_list_!\n", ptr);
+    return nullptr;
+  }
+
+  if(size <= tmp->size){
+    //ToDo: Actually resize and or split the block if not the last
+
+    if(tmp->next == nullptr){
+      tmp->size = size;
+      kbrk((void*)((size_t)KERNEL_BRK + sizeof(Block) + size));
+    }
+    return;
+  }
+
+  void* new_block = kmalloc(size);
+  if(!new_block) {
+    return nullptr;
+  }
+
+  kprintf("Got a new block, starting the transfer process...\n");
+  uint8_t* old_data = reinterpret_cast<uint8_t*>(tmp+1);
+  uint8_t* new_data = reinterpret_cast<uint8_t*>(new_block);
+  for(size_t i=0; i<tmp->size && i<size; i++){
+    new_data[i] = old_data[i];
+  }
+
+  free(ptr);
+  kprintf("Realloc is about to finish!\n");
+  return new_block;
+}

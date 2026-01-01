@@ -23,7 +23,11 @@ CFLAGS    = -march=rv64imac_zicsr -mabi=lp64 \
             -I./include \
             -g
 
-CXXFLAGS    = $(CFLAGS) -fno-exceptions -fno-rtti -fno-threadsafe-statics -fpermissive
+USTL_DIR = third_party
+USTL_SOURCES = $(wildcard $(USTL_DIR)/ustl/*.cpp)
+USTL_OBJECTS = $(USTL_SOURCES:.cpp=.o)
+
+CXXFLAGS    = $(CFLAGS) -I$(USTL_DIR) -fno-exceptions -fno-rtti -fno-threadsafe-statics -fpermissive
 
 ASFLAGS   = -march=rv64imac_zicsr -mabi=lp64
 
@@ -32,12 +36,13 @@ LDFLAGS   = -T linker.ld -nostdlib
 # Source files
 SRC_C     = core/memory.c core/mem_util.c arch/riscv/boot/setup_paging.c core/page_manager.c core/kprintf.c arch/riscv/sbi.c core/icxxabi.c
 SRC_S     = arch/riscv/boot/start.S arch/riscv/trap.S
-SRC_CXX   = core/kernel.cpp core/kernel_allocator.cpp
+SRC_CXX   = core/kernel.cpp core/kernel_allocator.cpp core/kstring.cpp core/qsort.cpp
 
 # Object files (in build directory)
 OBJ       = $(patsubst %.c,$(OBJ_DIR)/%.o,$(SRC_C)) \
             $(patsubst %.S,$(OBJ_DIR)/%.o,$(SRC_S)) \
-						$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRC_CXX))
+						$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRC_CXX)) \
+						$(patsubst %.cpp,$(OBJ_DIR)/%.o,$(USTL_SOURCES))
 
 # Output files
 KERNEL_ELF  = $(BUILD_DIR)/kernel.elf
